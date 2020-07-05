@@ -2,7 +2,7 @@ package config
 
 import (
 	"path/filepath"
-	"github.com/mijies/dashboard_generator/pkg/utils"
+	// "github.com/mijies/dashboard_generator/pkg/utils"
 )
 
 const (
@@ -15,7 +15,8 @@ const (
 	TTL_CODES_DIR	= "ttl_codes/"
 
 	// command sheet format
-	MACRO_SHEET_NAME_PREFIX = "ttl_macro_"
+	MACRO_SHEET_NAME   	 = "ttl_macro"
+	MACRO_TMP_SHEET_NAME = "ttl_macro_tmp"
 	DESCRIPTION_COLUMN = 1
 
 	COMMAND_LABEL	= "[[COMMANDS]]"
@@ -30,9 +31,12 @@ const (
 
 
 type Config interface {
-	GetNewSheetName()	string
-	GetCommandsDir()	string
-	GetCommandsFile()	string
+	GetTimeFormat()			string
+	GetMacroSheetName()		string
+	GetMacroTmpSheetName()	string
+	GetCommandsDir()		string
+	GetCommandsFile()		string
+	GetCommandLabel()		string
 }
 
 type config struct {
@@ -42,10 +46,19 @@ func NewConfig() Config {
 	return Config(&config{})
 }
 
-func(i *config) GetNewSheetName() string {
-	return MACRO_SHEET_NAME_PREFIX + utils.GetTimeStr(TIME_FORMAT)
+func(i *config) GetTimeFormat() string {
+	return TIME_FORMAT
 }
 
+func(i *config) GetMacroSheetName() string {
+	return MACRO_SHEET_NAME
+}
+
+func(i *config) GetMacroTmpSheetName() string {
+	return MACRO_TMP_SHEET_NAME
+}
+
+// commands
 func(i *config) GetCommandsDir() string {
 	return filepath.FromSlash(BASE_PATH + COMMANDS_DIR)
 }
@@ -53,3 +66,9 @@ func(i *config) GetCommandsDir() string {
 func(i *config) GetCommandsFile() string {
 	return COMMANDS_FILE
 }
+
+func(i *config) GetCommandLabel() string {
+	return COMMAND_LABEL
+}
+
+// ttl_codes

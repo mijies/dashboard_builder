@@ -5,6 +5,7 @@ import (
 	// "log"
 	"github.com/360EntSecGroup-Skylar/excelize"
 
+	"github.com/mijies/dashboard_generator/internal/config"
 	"github.com/mijies/dashboard_generator/pkg/utils"
 )
 
@@ -24,12 +25,16 @@ func(c *commands) loadData() {
 	utils.LoadJSON(c.base_path, &c.chains)
 	utils.LoadJSON(c.user_path + ".json", &c.user_chains)
 
-	fmt.Printf(c.chains[0].Chain[0])
-	fmt.Printf(c.chains[0].Args["hostname"])
-	fmt.Printf(c.user_chains[0].Chain[0])
-	fmt.Printf(c.user_chains[0].Args["hostname"])
+	fmt.Printf("%s\n", c.chains[0].Chain[0])
+	fmt.Printf("%s\n", c.chains[0].Args["hostname"])
+	fmt.Printf("%s\n", c.user_chains[0].Chain[0])
+	fmt.Printf("%s\n", c.user_chains[0].Args["hostname"])
 }
 
-func(c *commands) render(book *excelize.File, sheet_name string) {
-	// book.SetCellValue(sheet_name, d.inv., "Hello world.")
+func(c *commands) getComponentLabel(cfg config.Config) string {
+	return cfg.GetCommandLabel()
+}
+
+func(c *commands) insertRows(book *excelize.File, sheet_name string) {
+	// book.SetCellValue(sheet_name, address, label)
 }
