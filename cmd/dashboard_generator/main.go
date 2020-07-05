@@ -17,7 +17,7 @@ func main() {
 
 	user := "foo"
 	login_user := "foo15"
-	book_path := "~/dashboard_generator_test/dashboard.xlsm"
+	book_path := "samples/dashboard.xlsm"
 	account := account.NewUserAccount(user, login_user)
 	dashboard.BuildDashboard(book_path, account)
 }

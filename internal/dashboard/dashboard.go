@@ -2,81 +2,63 @@ package dashboard
 
 import (
 	// "fmt"
-	// "log"
+	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
 
 	uac "github.com/mijies/dashboard_generator/internal/account"
-	inv "github.com/mijies/dashboard_generator/internal/inventory"
+	"github.com/mijies/dashboard_generator/internal/config"
 )
 
 func BuildDashboard(book_path string, account * uac.UserAccount) {
 	d := dashboard{
+		base_path:	book_path,
 		account:	account,
-		inventory:	inv.NewInventory(),
+		cfg:		config.NewConfig(),
 	}
-	d.loadData(book_path)
+	d.initComponents()
+	d.loadData()
+	d.generate()
 }
 
 type dashboard_component interface {
-	loadData(base_path string)
-	build()
-	render(sheet_name string)
+	loadData()
+	render(book *excelize.File, sheet_name string)
 }
 
 type dashboard struct {
+	base_path	string
+	cfg			config.Config
 	book		*excelize.File
 	account		*uac.UserAccount
-	inventory	inv.Inventory
 	commands	commands
 }
 
-type commands struct {
-	chains		[]command
-	user_chains	[]command
+func(d *dashboard) initComponents() {
+	d.commands = commands{
+		base_path:  d.cfg.GetCommandsDir() + d.cfg.GetCommandsFile(),
+		user_path:  d.cfg.GetCommandsDir() + d.account.Name,
+	}
 }
 
-type command struct {
-	Chain	[]string			`json:"chain"`
-	Args	map[string]string	`json:"args"`
+func(d *dashboard) loadData() {
+	file, err := excelize.OpenFile(d.base_path)
+    if err != nil {
+        log.Fatal(err)
+	}
+	d.book = file
+
+	d.commands.loadData()
 }
 
-func(d *dashboard) loadData(path string) {
-// 	d.commands.loadData(BASE_PATH + COMMANDS_DIR, account)
-
-// 	file, err := excelize.OpenFile(path)
-//     if err != nil {
-//         log.Fatal(err)
-// 	}
-// 	d.book = file
+func(d *dashboard) generate() {
+	sheet_name := d.cfg.GetNewSheetName()
+	d.book.NewSheet(sheet_name)
+	d.render(d.book, sheet_name)
+	// if err := d.book.Save(); err != nil {
+    //     log.Fatal(err)
+    // }
 }
 
-// func(c *commands) loadData(path string, account *user_account) {
-// 	loadJSON(path + COMMANDS_FILE, 	&c.chains)
-// 	loadJSON(path + account.name + ".json", &c.user_chains)
-
-// 	fmt.Printf(c.chains[0].Chain[0])
-// 	fmt.Printf(c.chains[0].Args["hostname"])
-// 	fmt.Printf(c.user_chains[0].Chain[0])
-// 	fmt.Printf(c.user_chains[0].Args["hostname"])
-// }
-
-// func(d *dashboard) build() {
-// 	// d.commands.build()
-
-// 	timestamp := getTimeStr(TIME_FORMAT)
-// 	d.book.NewSheet(MACRO_SHEET_NAME_PREFIX + timestamp)
-// 	d.render(timestamp)
-// 	// if err := d.book.Save(); err != nil {
-//     //     log.Fatal(err)
-//     // }
-// }
-
-// func(d *dashboard) render(sheet_name string) {
-
-// 	timestamp := getTimeStr(TIME_FORMAT)
-// 	d.book.f.SetCellValue(sheet_name, "A2", "Hello world.")
-// 	d.render(timestamp)
-// 	// if err := d.book.Save(); err != nil {
-//     //     log.Fatal(err)
-//     // }
-// }
+func(d *dashboard) render(book *excelize.File, sheet_name string) {
+	d.commands.render(book, sheet_name)
+}
