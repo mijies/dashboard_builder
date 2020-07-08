@@ -5,43 +5,36 @@ import (
 	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
-
-	uac "github.com/mijies/dashboard_generator/internal/account"
+	"github.com/mijies/dashboard_generator/internal/account"
 	"github.com/mijies/dashboard_generator/internal/config"
 	"github.com/mijies/dashboard_generator/pkg/utils"
 )
 
-func BuildDashboard(book_path string, account * uac.UserAccount) {
-	d := dashboard{
-		base_path:	book_path,
-		account:	account,
-		cfg:		config.NewConfig(),
-	}
-	d.initComponents()
-	d.loadComponents()
-	d.buildDashboard()
-}
-
 // commands and ttl_codes
 type dashboard_component interface {
-	loadData()
+	getLength() int
 	getComponentLabel(cfg config.Config) string
-	// insertRows()
+	loadData(cfg config.Config, acc *account.UserAccount)
+	ComponentIterator() []string
+}
+
+func BuildDashboard(book_path string, acc *account.UserAccount) {
+	d := dashboard{
+		base_path:	book_path,
+		acc:		acc,
+		cfg:		config.NewConfig(),
+	}
+	d.loadComponents()
+	d.buildDashboard()
 }
 
 type dashboard struct {
 	base_path	string
 	cfg			config.Config
+	acc			*account.UserAccount
 	book		*excelize.File
-	account		*uac.UserAccount
 	commands	commands
-}
-
-func(d *dashboard) initComponents() {
-	d.commands = commands{
-		base_path:  d.cfg.GetCommandsDir() + d.cfg.GetCommandsFile(),
-		user_path:  d.cfg.GetCommandsDir() + d.account.Name,
-	}
+	ttl_codes	ttl_codes
 }
 
 func(d *dashboard) loadComponents() {
@@ -51,7 +44,8 @@ func(d *dashboard) loadComponents() {
 	}
 	d.book = file
 
-	d.commands.loadData()
+	d.commands.loadData(d.cfg, d.acc)
+	d.ttl_codes.loadData(d.cfg, d.acc)
 }
 
 func(d *dashboard) buildDashboard() {
@@ -62,7 +56,7 @@ func(d *dashboard) buildDashboard() {
         log.Fatal(err)
 	}
 
-	// reopen a book with the new one
+	// swap with the new one
 	d.base_path = new_path
 	file, err := excelize.OpenFile(d.base_path)
     if err != nil {
@@ -70,7 +64,7 @@ func(d *dashboard) buildDashboard() {
 	}
 	d.book = file
 
-	// delete exsisting the macro sheet
+	// delete the exsisting macro sheet
 	sheet_name := d.cfg.GetMacroSheetName()
 	d.book.DeleteSheet(sheet_name)
 
@@ -83,7 +77,7 @@ func(d *dashboard) buildDashboard() {
 	}
 
 	d.renderSheet(sheet_name, &d.commands)
-	// d.renderSheet(sheet_name, d.ttl_codes)
+	// d.renderSheet(sheet_name, &d.ttl_codes)
 	if err := d.book.Save(); err != nil {
         log.Fatal(err)
 	}
@@ -91,14 +85,18 @@ func(d *dashboard) buildDashboard() {
 
 func(d *dashboard) renderSheet(sheet_name string, comp dashboard_component) {
 	label := comp.getComponentLabel(d.cfg)
-	rows := [2]int{1, 5}
+	rowc := d.commands.getLength() + d.ttl_codes.getLength() // row count to cover
+	rows := [2]int{1, rowc}
 	cols := [2]int{1, 5}
 	axis, err := d.locateCell(sheet_name, label, rows, cols)
 	if err != nil {
 		log.Fatal(err)
 	}		
 	fmt.Printf("%s\n", axis)
-	// comp.insertRows()
+
+	// for i, row_strings := range comp.ComponentIterator() {
+
+	// }
 }
 
 func(d *dashboard) locateCell(sheet_name string, value string, rows [2]int, cols [2]int) (string, error) {

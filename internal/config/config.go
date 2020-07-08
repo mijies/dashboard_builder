@@ -8,25 +8,17 @@ import (
 const (
 	TIME_FORMAT 	= "20060102030405"
 
-	// files and directories
+	// files and directories and labels
 	BASE_PATH    	= "samples/"
 	COMMANDS_DIR 	= "commands/"
 	COMMANDS_FILE	= "commands.json"
+	COMMANDS_LABEL	= "[[COMMANDS]]"
 	TTL_CODES_DIR	= "ttl_codes/"
+	TTL_CODES_LABEL	= "[[SNIPPETS]]"
 
 	// command sheet format
 	MACRO_SHEET_NAME   	 = "ttl_macro"
 	MACRO_TMP_SHEET_NAME = "ttl_macro_tmp"
-	DESCRIPTION_COLUMN = 1
-
-	COMMAND_LABEL	= "[[COMMANDS]]"
-	COMMAND_COLUMN	= 2
-	COMMAND_ROW		= 2
-
-	ARGS_LABEL		= "[[ARGS]]"
-	ARGS_COLUMN		= 3
-
-	CODES_LABEL		= "[[CODES]]"
 )
 
 
@@ -36,7 +28,9 @@ type Config interface {
 	GetMacroTmpSheetName()	string
 	GetCommandsDir()		string
 	GetCommandsFile()		string
-	GetCommandLabel()		string
+	GetCommandsLabel()		string
+	GetTTLCodesDir()		string
+	GetTTLCodesLabel()		string
 }
 
 type config struct {
@@ -67,8 +61,15 @@ func(i *config) GetCommandsFile() string {
 	return COMMANDS_FILE
 }
 
-func(i *config) GetCommandLabel() string {
-	return COMMAND_LABEL
+func(i *config) GetCommandsLabel() string {
+	return COMMANDS_LABEL
 }
 
 // ttl_codes
+func(i *config) GetTTLCodesDir() string {
+	return filepath.FromSlash(BASE_PATH + TTL_CODES_DIR)
+}
+
+func(i *config) GetTTLCodesLabel() string {
+	return TTL_CODES_LABEL
+}

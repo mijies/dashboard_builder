@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 )
 
@@ -24,4 +25,20 @@ func LoadJSON(path string, obj interface{}) {
 		log.Fatal(err)
 	}
 	json.Unmarshal(bs, &obj)
+}
+
+func DirWalk(dir string, fn func(string, os.FileInfo) string) []string {
+    files, err := ioutil.ReadDir(dir)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    var paths []string
+    for _, file := range files {
+		path := fn(dir, file)
+		if path != "" {
+			paths = append(paths, path)
+		}
+    }
+    return paths
 }
