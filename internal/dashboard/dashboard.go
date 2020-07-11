@@ -12,10 +12,12 @@ import (
 
 // commands and ttl_codes
 type dashboard_component interface {
+	iterable()	iterator
 	getLength() int
 	getComponentLabel(cfg config.Config) string
 	loadData(cfg config.Config, acc *account.UserAccount)
-	ComponentIterator() []string
+	parseData()
+	intoRow(index int) [][]string
 }
 
 func BuildDashboard(book_path string, acc *account.UserAccount) {
@@ -45,7 +47,9 @@ func(d *dashboard) loadComponents() {
 	d.book = file
 
 	d.commands.loadData(d.cfg, d.acc)
+	d.commands.parseData()
 	d.ttl_codes.loadData(d.cfg, d.acc)
+	d.ttl_codes.parseData()
 }
 
 func(d *dashboard) buildDashboard() {
@@ -88,18 +92,20 @@ func(d *dashboard) renderSheet(sheet_name string, comp dashboard_component) {
 	rowc := d.commands.getLength() + d.ttl_codes.getLength() // row count to cover
 	rows := [2]int{1, rowc}
 	cols := [2]int{1, 5}
-	axis, err := d.locateCell(sheet_name, label, rows, cols)
+	rowi, err := d.locateRow(sheet_name, label, rows, cols)
 	if err != nil {
 		log.Fatal(err)
 	}		
-	fmt.Printf("%s\n", axis)
 
-	// for i, row_strings := range comp.ComponentIterator() {
-
-	// }
+	itr := comp.iterable()
+	for itr.hasNext() {
+		rows := itr.next()
+		fmt.Printf("%d\n", len(rows))
+		rowi += len(rows)
+	}
 }
 
-func(d *dashboard) locateCell(sheet_name string, value string, rows [2]int, cols [2]int) (string, error) {
+func(d *dashboard) locateRow(sheet_name string, value string, rows [2]int, cols [2]int) (int, error) {
 	if cols[1] > 27 {
 		log.Fatal("column only supported upto Z")
 	}
@@ -113,9 +119,9 @@ func(d *dashboard) locateCell(sheet_name string, value string, rows [2]int, cols
 				log.Fatal(err)
 			}		
 			if val == value {
-				return axis, nil
+				return row, nil
 			}
 		}	
 	} 
-	return "", errors.New("no cell found with the value:" + value)
+	return -1, errors.New("no cell found with the value:" + value)
 }
