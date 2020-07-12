@@ -4,6 +4,7 @@ import (
 	"fmt"
 	// "log"
 	"os"
+	"sort"
 	"strings"
 	"github.com/mijies/dashboard_generator/internal/account"
 	"github.com/mijies/dashboard_generator/internal/config"
@@ -11,9 +12,10 @@ import (
 )
 
 type commands struct {
-	chains			[]command
-	user_chains		[]command
-	parsed_chains	[]command // made by parseData()
+	chains		[]command
+	user_chains	[]command
+	finalized	[]command
+	rows		[][]string // made by intoRows()
 }
 
 type command struct {
@@ -23,23 +25,23 @@ type command struct {
 	Args	map[string]string	`json:"args"`
 }
 
-type commandIterator struct {
-	index	int
-	length	int
-	items	[][]string
-}
-
 func(c *commands) iterable() iterator {
 	i := iter{
 		index:	0,
 		length:	c.getLength(),
-		comp:	dashboard_component(c),
+		items:	&c.rows,
 	}
 	return iterator(&i)
 }
 
 func(c *commands) getLength() int {
-	return len((*c).parsed_chains)
+	if len(c.rows) != 0 {
+		return len(c.rows)
+	}
+	if len(c.finalized) != 0 {
+		return len(c.finalized)
+	}
+	return -1 // length is unknown until finalized
 }
 
 func(c *commands) getComponentLabel(cfg config.Config) string {
@@ -56,25 +58,27 @@ func(c *commands) loadData(cfg config.Config, acc *account.UserAccount) {
 		return
 	}
 	utils.LoadJSON(user_path, &c.user_chains)
-
-	fmt.Printf("%s\n", c.user_chains[0].Chain[0])
-	fmt.Printf("%s\n", c.user_chains[0].Args["hostname"])
 }
 
-func(c *commands) parseData() {
-	c.parsed_chains = c.chains 
+func(c *commands) finalize() {
+	c.finalized   = append(c.user_chains, c.chains...)
+	c.chains 	  = nil
+	c.user_chains = nil
+	sort.SliceStable(c.finalized, func(a, b int) bool { return c.finalized[a].Index < c.finalized[b].Index })
+	c.intoRows()
 }
 
-func(c *commands) intoRow(index int) [][]string {
-	var rows [][]string
-	cmd := c.parsed_chains[index]
-	rows[0] = []string{
-		string(cmd.Index),
-		cmd.Name,
-		strings.Join(cmd.Chain, ","),
+func(c *commands) intoRows() {
+	for _, cmd := range c.finalized {
+		row := []string{
+			fmt.Sprintf("%d", cmd.Index),
+			cmd.Name,
+			strings.Join(cmd.Chain, ","),
+		}
+		for k, v := range cmd.Args {
+			row = append(row, k + "," + v)
+		}
+		c.rows = append(c.rows, row)
 	}
-	for k, v := range cmd.Args {
-		rows[0] = append(rows[0], k + "," + v)
-	}
-	return rows
+	c.finalized	= nil
 }

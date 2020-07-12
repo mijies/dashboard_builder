@@ -16,30 +16,30 @@ type dashboard_component interface {
 	getLength() int
 	getComponentLabel(cfg config.Config) string
 	loadData(cfg config.Config, acc *account.UserAccount)
-	parseData()
-	intoRow(index int) [][]string
+	finalize()
+	intoRows()
 }
 
-func BuildDashboard(book_path string, acc *account.UserAccount) {
+func Build(book_path string, acc *account.UserAccount) {
 	d := dashboard{
 		base_path:	book_path,
 		acc:		acc,
 		cfg:		config.NewConfig(),
 	}
-	d.loadComponents()
-	d.buildDashboard()
+	d.load()
+	d.build()
 }
 
 type dashboard struct {
 	base_path	string
-	cfg			config.Config
+	cfg			config.Config // interface
 	acc			*account.UserAccount
 	book		*excelize.File
 	commands	commands
 	ttl_codes	ttl_codes
 }
 
-func(d *dashboard) loadComponents() {
+func(d *dashboard) load() {
 	file, err := excelize.OpenFile(d.base_path)
     if err != nil {
         log.Fatal(err)
@@ -47,12 +47,12 @@ func(d *dashboard) loadComponents() {
 	d.book = file
 
 	d.commands.loadData(d.cfg, d.acc)
-	d.commands.parseData()
+	d.commands.finalize()
 	d.ttl_codes.loadData(d.cfg, d.acc)
-	d.ttl_codes.parseData()
+	d.ttl_codes.finalize()
 }
 
-func(d *dashboard) buildDashboard() {
+func(d *dashboard) build() {
 	// create a new book
 	time_format := d.cfg.GetTimeFormat()
 	new_path := utils.AddTimestampToFilename(d.base_path, time_format, "xlsm")
@@ -81,7 +81,7 @@ func(d *dashboard) buildDashboard() {
 	}
 
 	d.renderSheet(sheet_name, &d.commands)
-	// d.renderSheet(sheet_name, &d.ttl_codes)
+	d.renderSheet(sheet_name, &d.ttl_codes)
 	if err := d.book.Save(); err != nil {
         log.Fatal(err)
 	}
@@ -89,19 +89,24 @@ func(d *dashboard) buildDashboard() {
 
 func(d *dashboard) renderSheet(sheet_name string, comp dashboard_component) {
 	label := comp.getComponentLabel(d.cfg)
-	rowc := d.commands.getLength() + d.ttl_codes.getLength() // row count to cover
-	rows := [2]int{1, rowc}
-	cols := [2]int{1, 5}
+	rowc  := d.commands.getLength() + 10 // row count to cover
+	rows  := [2]int{1, rowc}
+	cols  := [2]int{1, 5}
 	rowi, err := d.locateRow(sheet_name, label, rows, cols)
 	if err != nil {
 		log.Fatal(err)
-	}		
+	}
 
-	itr := comp.iterable()
+	seed := int('A')
+	itr  := comp.iterable()
 	for itr.hasNext() {
-		rows := itr.next()
-		fmt.Printf("%d\n", len(rows))
-		rowi += len(rows)
+		rowi++
+		d.book.DuplicateRow(sheet_name, rowi)
+		cols := itr.next()
+		for i, v := range cols {
+			axis := fmt.Sprintf("%s%d", string(seed + i), rowi)
+			d.book.SetCellValue(sheet_name, axis, v)
+		}
 	}
 }
 
@@ -112,7 +117,7 @@ func(d *dashboard) locateRow(sheet_name string, value string, rows [2]int, cols 
 
 	seed := int('A' - 1)
 	for col := cols[0]; col < cols[1]; col++ {
-		for row := rows[0]; row < rows[1]; row++ {
+		for row  := rows[0]; row < rows[1]; row++ {
 			axis := fmt.Sprintf("%s%d", string(seed + col), row)
 			val, err := d.book.GetCellValue(sheet_name, axis)
 			if err != nil {

@@ -1,7 +1,7 @@
 package dashboard
 
 import (
-	// "fmt"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -15,7 +15,8 @@ import (
 type ttl_codes struct {
 	snippets		[]snippet
 	user_snippets	[]snippet
-	parsed_snippets []snippet
+	finalized		[]snippet
+	rows			[][]string // made by intoRows()
 }
 
 type snippet struct {
@@ -26,13 +27,19 @@ func(t *ttl_codes) iterable() iterator {
 	i := iter{
 		index:	0,
 		length:	t.getLength(),
-		comp:	dashboard_component(t),
+		items:	&t.rows,
 	}
 	return iterator(&i)
 }
 
 func(t *ttl_codes) getLength() int {
-	return len((*t).parsed_snippets)
+	if len(t.rows) != 0 {
+		return len(t.rows)
+	}
+	if len(t.finalized) != 0 {
+		return len(t.finalized)
+	}
+	return -1 // length is unknown until finalized
 }
 
 func(t *ttl_codes) getComponentLabel(cfg config.Config) string {
@@ -43,31 +50,46 @@ func(t *ttl_codes) loadData(cfg config.Config, acc *account.UserAccount) {
 	base_dir := cfg.GetTTLCodesDir()
 	user_dir := filepath.FromSlash(cfg.GetTTLCodesDir() + acc.Name)
 
-	snippetsFromDir(t.snippets, base_dir)
+	snippetsFromDir(&t.snippets, base_dir)
 
 	if _, err := os.Stat(user_dir); os.IsNotExist(err) {
 		return
 	}
-	snippetsFromDir(t.user_snippets, user_dir)
+	snippetsFromDir(&t.user_snippets, user_dir)
 }
 
-func(t *ttl_codes) parseData() {
-	// no same title(file name) snippet allowed
+func(t *ttl_codes) finalize() {
+	// title(file name) duplication not allowed
+	for _, s := range t.snippets {
+		for _, u := range t.user_snippets {
+			for sk, _ := range s.snipMap {
+				for uk, _ := range u.snipMap {
+					if sk == uk {
+						log.Fatal("code name duplication with your custom code: " + sk)
+					}
+				}
+			}
+		}
+	}
 
-	t.parsed_snippets = append(t.snippets, t.user_snippets...)
+	t.finalized = append(t.snippets, t.user_snippets...)
+	t.snippets 		= nil
+	t.user_snippets = nil
+	t.intoRows()
 }
 
-func(t *ttl_codes) intoRow(index int) [][]string {
-	var rows [][]string
-	for k, v := range t.parsed_snippets[index].snipMap {
-		rows[0] = []string{"", "", k}		// 1st and 2nd columns are empty
-		rows[1] = []string{"", "", string(v)}
-		rows[2] = []string{"", "", ""}		// empty row between snippets
-	} 
-	return rows
+func(t *ttl_codes) intoRows() {
+	for _, s := range t.finalized {
+		for k, v := range s.snipMap {
+			t.rows = append(t.rows, []string{"", "", "[" + k + "]"}) // 1st and 2nd columns are empty
+			t.rows = append(t.rows, []string{"", "", string(v)})
+			t.rows = append(t.rows, []string{"", "", ""})
+		}
+	}
+	t.finalized	= nil
 }
 
-func snippetsFromDir(snips []snippet, dir string) {
+func snippetsFromDir(snips *[]snippet, dir string) {
 	file_names := utils.DirWalk(dir, onlyTextFile)
 	for _, name := range file_names {
 		bs, err := ioutil.ReadFile(filepath.Join(dir, name))
@@ -75,9 +97,9 @@ func snippetsFromDir(snips []snippet, dir string) {
 			log.Fatal(err)
 		}
 		snip := snippet{
-			snipMap: map[string][]byte{name: bs},
+			snipMap: map[string][]byte{name[:len(name)-4]: bs}, // remove .txt from name
 		}
-		snips = append(snips, snip)
+		*snips = append(*snips, snip)
 	}
 }
 
