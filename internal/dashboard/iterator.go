@@ -2,14 +2,14 @@ package dashboard
 
 type iterator interface {
     hasNext()	bool
-    next()		[]string
+    next()		([]string, []string)
 }
 
 type iter struct {
 	index	int
 	length	int
-	items	*[][]string
-	// props	*cellProp
+	values	*[][]string
+	styles	*[][]string
 }
 
 func (i *iter) hasNext() bool {
@@ -19,8 +19,9 @@ func (i *iter) hasNext() bool {
     return false
 }
 
-func(i *iter) next() []string {
-	item := (*i.items)[i.index]
+func(i *iter) next() ([]string, []string) {
+	value := (*i.values)[i.index]
+	style := (*i.styles)[i.index]
 	i.index++
-	return item
+	return value, style
 }

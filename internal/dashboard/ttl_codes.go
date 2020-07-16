@@ -17,6 +17,7 @@ type ttl_codes struct {
 	user_snippets	[]snippet
 	finalized		[]snippet
 	rows			[][]string // made by intoRows()
+	styles			[][]string // cell styles
 }
 
 type snippet struct {
@@ -27,7 +28,8 @@ func(t *ttl_codes) iterable() iterator {
 	i := iter{
 		index:	0,
 		length:	t.getLength(),
-		items:	&t.rows,
+		values:	&t.rows,
+		styles:	&t.styles,
 	}
 	return iterator(&i)
 }
@@ -84,6 +86,9 @@ func(t *ttl_codes) intoRows() {
 			t.rows = append(t.rows, []string{"", "", "[" + k + "]"}) // 1st and 2nd columns are empty
 			t.rows = append(t.rows, []string{"", "", string(v)})
 			t.rows = append(t.rows, []string{"", "", ""})
+			t.styles = append(t.styles, []string{"", "", STYLE_TITLE})
+			t.styles = append(t.styles, []string{"", "", ""})
+			t.styles = append(t.styles, []string{"", "", ""})
 		}
 	}
 	t.finalized	= nil
@@ -111,3 +116,8 @@ func onlyTextFile(dir string, file os.FileInfo) string {
 	}
 	return file.Name()
 }
+
+const (
+	STYLE_TITLE = `{"border":[{"type":"left","style":1},{"type":"right","style":1},{"type":"top","style":1},{"type":"bottom","style":1}],
+					"fill":{"type":"gradient","color":["#FFFFFF","#FFE6E6"],"shading":5}}`
+)

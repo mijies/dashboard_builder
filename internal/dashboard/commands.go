@@ -15,6 +15,7 @@ type commands struct {
 	user_chains	[]command
 	finalized	[]command
 	rows		[][]string // made by intoRows()
+	styles		[][]string // cell styles
 }
 
 type command struct {
@@ -28,7 +29,8 @@ func(c *commands) iterable() iterator {
 	i := iter{
 		index:	0,
 		length:	c.getLength(),
-		items:	&c.rows,
+		values:	&c.rows,
+		styles:	&c.styles,
 	}
 	return iterator(&i)
 }
@@ -74,10 +76,24 @@ func(c *commands) intoRows() {
 			cmd.Name,
 			strings.Join(cmd.Chain, ","),
 		}
-		for k, v := range cmd.Args {
-			row = append(row, k + "," + v)
+		style := []string{
+			STYLE_NO, STYLE_NAME, STYLE_CHAIN,
 		}
-		c.rows = append(c.rows, row)
+
+		for k, v := range cmd.Args {
+			row   = append(row, k + "," + v)
+			style = append(style, STYLE_ARGS)
+		}
+		c.rows   = append(c.rows,   row)
+		c.styles = append(c.styles, style)
 	}
 	c.finalized	= nil
 }
+
+const (
+	STYLE_NO    = ``
+	STYLE_NAME  = `{"font":{"bold":true}}`
+	STYLE_CHAIN = `{"border":[{"type":"left","style":1},{"type":"right","style":1},{"type":"top","style":1},{"type":"bottom","style":1}],
+					"fill":{"type":"gradient","color":["#FFFFFF","#E0EBF5"],"shading":5}}`
+	STYLE_ARGS  = ``
+)

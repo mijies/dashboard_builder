@@ -102,10 +102,13 @@ func(d *dashboard) renderSheet(sheet_name string, comp dashboard_component) {
 	for itr.hasNext() {
 		rowi++
 		d.book.DuplicateRow(sheet_name, rowi)
-		cols := itr.next()
+		cols, stys := itr.next()
 		for i, v := range cols {
 			axis := fmt.Sprintf("%s%d", string(seed + i), rowi)
 			d.book.SetCellValue(sheet_name, axis, v)
+			if len(stys[i]) != 0 {
+				d.setRowStyle(sheet_name, axis, stys[i])
+			}
 		}
 	}
 }
@@ -129,4 +132,12 @@ func(d *dashboard) locateRow(sheet_name string, value string, rows [2]int, cols 
 		}	
 	} 
 	return -1, errors.New("no cell found with the value:" + value)
+}
+
+func(d *dashboard) setRowStyle(sheet_name string, axis string, style_str string) {
+	style, err := d.book.NewStyle(style_str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = d.book.SetCellStyle(sheet_name, axis, axis, style)
 }
