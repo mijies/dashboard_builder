@@ -1,15 +1,15 @@
 package dashboard
 
 import (
-	"fmt"
+	// "fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
 	"path/filepath"
-	"github.com/mijies/dashboard_generator/internal/account"
-	"github.com/mijies/dashboard_generator/internal/config"
-	"github.com/mijies/dashboard_generator/pkg/utils"
+	"github.com/mijies/dashboard_builder/internal/account"
+	"github.com/mijies/dashboard_builder/internal/config"
+	"github.com/mijies/dashboard_builder/pkg/utils"
 )
 
 type ttl_codes struct {

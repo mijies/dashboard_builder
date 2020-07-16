@@ -2,7 +2,6 @@ package config
 
 import (
 	"path/filepath"
-	// "github.com/mijies/dashboard_generator/pkg/utils"
 )
 
 const (

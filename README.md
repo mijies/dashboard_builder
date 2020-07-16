@@ -1,1 +1,1 @@
-# dashboard_generator
+# dashboard_builder

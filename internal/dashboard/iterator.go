@@ -9,6 +9,7 @@ type iter struct {
 	index	int
 	length	int
 	items	*[][]string
+	// props	*cellProp
 }
 
 func (i *iter) hasNext() bool {

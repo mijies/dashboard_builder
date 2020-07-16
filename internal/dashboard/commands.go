@@ -2,13 +2,12 @@ package dashboard
 
 import (
 	"fmt"
-	// "log"
 	"os"
 	"sort"
 	"strings"
-	"github.com/mijies/dashboard_generator/internal/account"
-	"github.com/mijies/dashboard_generator/internal/config"
-	"github.com/mijies/dashboard_generator/pkg/utils"
+	"github.com/mijies/dashboard_builder/internal/account"
+	"github.com/mijies/dashboard_builder/internal/config"
+	"github.com/mijies/dashboard_builder/pkg/utils"
 )
 
 type commands struct {
