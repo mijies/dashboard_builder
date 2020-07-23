@@ -2,98 +2,136 @@ package dashboard
 
 import (
 	"fmt"
-	"os"
-	"sort"
+	"log"
+	// "sort"
+	"strconv"
 	"strings"
-	"github.com/mijies/dashboard_builder/internal/account"
-	"github.com/mijies/dashboard_builder/internal/config"
-	"github.com/mijies/dashboard_builder/pkg/utils"
+	"github.com/360EntSecGroup-Skylar/excelize"
+	// "github.com/mijies/dashboard_builder/pkg/utils"
 )
 
 type commands struct {
 	chains		[]command
-	user_chains	[]command
-	finalized	[]command
-	rows		[][]string // made by intoRows()
-	styles		[][]string // cell styles
+	// finalized	[]command
+	// rows		[][]string // made by intoRows()
+	// styles		[][]string // cell styles
 }
 
 type command struct {
-	Index	int					`json:"index"`
-	Name	string				`json:"name"`
-	Chain	[]string			`json:"chain"`
-	Args	map[string]string	`json:"args"`
+	index	int
+	name	string
+	chain	[]string
+	args	map[string]string
 }
 
-func(c *commands) iterable() iterator {
-	i := iter{
-		index:	0,
-		length:	c.getLength(),
-		values:	&c.rows,
-		styles:	&c.styles,
+// func(c *commands) iterable() iterator {
+// 	i := iter{
+// 		index:	0,
+// 		length:	c.len(),
+// 		values:	&c.rows,
+// 		styles:	&c.styles,
+// 	}
+// 	return iterator(&i)
+// }
+
+func(c *commands) len() int {
+	return len(c.chains)
+}
+
+func(c *commands) load(book *excelize.File) {
+	// find label row
+	rowi, err := findRow(book, MACRO_SHEET_NAME, getCommandsLabel(), [2]int{1, 5}, [2]int{1, 5})
+	if err != nil {
+		log.Fatal(err)
 	}
-	return iterator(&i)
-}
 
-func(c *commands) getLength() int {
-	if len(c.rows) != 0 {
-		return len(c.rows)
+	// iterate unless No. column is empty
+	for {
+		rowi++
+		axis := fmt.Sprintf("%s%d", "A", rowi)
+		index, err := book.GetCellValue(MACRO_SHEET_NAME, axis)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(index) == 0 {
+			break
+		}
+		int_idx, err := strconv.Atoi(index)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd := command{index: int_idx}
+		cmd.load(book, rowi)
+		c.chains = append(c.chains, cmd)
 	}
-	if len(c.finalized) != 0 {
-		return len(c.finalized)
-	}
-	return -1 // length is unknown until finalized
 }
 
-func(c *commands) getComponentLabel(cfg config.Config) string {
-	return cfg.GetCommandsLabel()
-}
-
-func(c *commands) loadData(cfg config.Config, acc *account.UserAccount) {
-	base_path := cfg.GetCommandsDir() + cfg.GetCommandsFile()
-	user_path := cfg.GetCommandsDir() + acc.Name + ".json"
-
-	utils.LoadJSON(base_path, &c.chains)
-
-	if _, err := os.Stat(user_path); os.IsNotExist(err) {
+func(c *command) load(book *excelize.File, rowi int) {
+	name, err := book.GetCellValue(MACRO_SHEET_NAME, fmt.Sprintf("%s%d", "B", rowi))
+	if err != nil {
+		log.Fatal(err)
+	}	
+	if len(name) == 0 {
 		return
 	}
-	utils.LoadJSON(user_path, &c.user_chains)
-}
+	c.name = name
 
-func(c *commands) finalize() {
-	c.finalized   = append(c.user_chains, c.chains...)
-	c.chains 	  = nil
-	c.user_chains = nil
-	sort.SliceStable(c.finalized, func(a, b int) bool { return c.finalized[a].Index < c.finalized[b].Index })
-	c.intoRows()
-}
-
-func(c *commands) intoRows() {
-	for _, cmd := range c.finalized {
-		row := []string{
-			fmt.Sprintf("%d", cmd.Index),
-			cmd.Name,
-			strings.Join(cmd.Chain, ","),
-		}
-		style := []string{
-			STYLE_NO, STYLE_NAME, STYLE_CHAIN,
-		}
-
-		for k, v := range cmd.Args {
-			row   = append(row, k + "," + v)
-			style = append(style, STYLE_ARGS)
-		}
-		c.rows   = append(c.rows,   row)
-		c.styles = append(c.styles, style)
+	chain, err := book.GetCellValue(MACRO_SHEET_NAME, fmt.Sprintf("%s%d", "C", rowi))
+	if err != nil {
+		log.Fatal(err)
+	}	
+	if len(chain) == 0 {
+		return
 	}
-	c.finalized	= nil
+	c.chain = strings.Split(chain, ",")
+
+	col := int('D')
+	for i := 0;; i++ {
+		args, err := book.GetCellValue(MACRO_SHEET_NAME, fmt.Sprintf("%s%d", string(col + i), rowi))
+		if err != nil {
+			log.Fatal(err)
+		}	
+		if len(args) == 0 {
+			return
+		}
+		kv := strings.Split(args, ",")
+		c.args[kv[0]] = kv[1]
+	}
 }
 
-const (
-	STYLE_NO    = ``
-	STYLE_NAME  = `{"font":{"bold":true}}`
-	STYLE_CHAIN = `{"border":[{"type":"left","style":1},{"type":"right","style":1},{"type":"top","style":1},{"type":"bottom","style":1}],
-					"fill":{"type":"gradient","color":["#FFFFFF","#E0EBF5"],"shading":5}}`
-	STYLE_ARGS  = ``
-)
+// func(c *commands) finalize() {
+// 	c.finalized   = append(c.user_chains, c.chains...)
+// 	c.chains 	  = nil
+// 	c.user_chains = nil
+// 	sort.SliceStable(c.finalized, func(a, b int) bool { return c.finalized[a].Index < c.finalized[b].Index })
+// 	c.intoRows()
+// }
+
+// func(c *commands) intoRows() {
+// 	for _, cmd := range c.finalized {
+// 		row := []string{
+// 			fmt.Sprintf("%d", cmd.Index),
+// 			cmd.Name,
+// 			strings.Join(cmd.Chain, ","),
+// 		}
+// 		style := []string{
+// 			STYLE_NO, STYLE_NAME, STYLE_CHAIN,
+// 		}
+
+// 		for k, v := range cmd.Args {
+// 			row   = append(row, k + "," + v)
+// 			style = append(style, STYLE_ARGS)
+// 		}
+// 		c.rows   = append(c.rows,   row)
+// 		c.styles = append(c.styles, style)
+// 	}
+// 	c.finalized	= nil
+// }
+
+// const (
+// 	STYLE_NO    = ``
+// 	STYLE_NAME  = `{"font":{"bold":true}}`
+// 	STYLE_CHAIN = `{"border":[{"type":"left","style":1},{"type":"right","style":1},{"type":"top","style":1},{"type":"bottom","style":1}],
+// 					"fill":{"type":"gradient","color":["#FFFFFF","#E0EBF5"],"shading":5}}`
+// 	STYLE_ARGS  = ``
+// )
