@@ -40,7 +40,7 @@ func(c *commands) len() int {
 
 func(c *commands) load(book *excelize.File) {
 	// find label row
-	rowi, err := findRow(book, MACRO_SHEET_NAME, getCommandsLabel(), [2]int{1, 5}, [2]int{1, 5})
+	rowi, err := findRow(book, MACRO_SHEET_NAME, COMMANDS_LABEL, [2]int{1, 100}, [2]int{1, 5})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,17 +53,18 @@ func(c *commands) load(book *excelize.File) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if len(index) == 0 {
+		if index == "" {
 			break
 		}
 		int_idx, err := strconv.Atoi(index)
 		if err != nil {
 			log.Fatal(err)
 		}
-		cmd := command{index: int_idx}
+		cmd := command{index: int_idx, args: make(map[string]string)}
 		cmd.load(book, rowi)
 		c.chains = append(c.chains, cmd)
 	}
+	fmt.Printf("%d\n", len(c.chains))
 }
 
 func(c *command) load(book *excelize.File, rowi int) {
@@ -71,7 +72,7 @@ func(c *command) load(book *excelize.File, rowi int) {
 	if err != nil {
 		log.Fatal(err)
 	}	
-	if len(name) == 0 {
+	if name == "" {
 		return
 	}
 	c.name = name
@@ -80,7 +81,7 @@ func(c *command) load(book *excelize.File, rowi int) {
 	if err != nil {
 		log.Fatal(err)
 	}	
-	if len(chain) == 0 {
+	if chain == "" {
 		return
 	}
 	c.chain = strings.Split(chain, ",")
@@ -90,8 +91,8 @@ func(c *command) load(book *excelize.File, rowi int) {
 		args, err := book.GetCellValue(MACRO_SHEET_NAME, fmt.Sprintf("%s%d", string(col + i), rowi))
 		if err != nil {
 			log.Fatal(err)
-		}	
-		if len(args) == 0 {
+		}
+		if args == "" {
 			return
 		}
 		kv := strings.Split(args, ",")

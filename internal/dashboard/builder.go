@@ -25,28 +25,39 @@ func Build(target_path string, acc *account.UserAccount) {
 }
 
 func(b *builder) load() {
-	b.appendBooks()
-	for _, book := range b.books {
-		book.load()
+
+	paths := []string{
+		b.target_path,
+		getMasterPath(),
+	}
+	if _, err := os.Stat(getUserPath(b.acc.Name)); !os.IsNotExist(err) {
+		paths = append(paths, getUserPath(b.acc.Name))
+	}
+
+	done := make(chan bool)
+	for _, path := range paths {
+		go func(path string) {
+			bk := b.newBook(path)
+			bk.load()
+			b.books = append(b.books, bk)
+			done <- true
+		}(path)
+	}
+
+	for _ = range paths {
+		<- done
 	}
 }
 
-func(b *builder) appendBooks() {
-	d := dashboard{
-		path:	b.target_path,
+func(b *builder) newBook(path string) book {
+	var d book
+	switch(path) {
+		case b.target_path:
+			d = book(&targetBook{dashboard{path: path}})
+		case getMasterPath():
+			d = book(&masterBook{dashboard{path: path}})
+		case getUserPath(b.acc.Name):
+			d = book(&userBook{dashboard{path: path}})
 	}
-	b.books = append(b.books, book(&d))
-
-	d = dashboard{
-		path:	getMasterPath(),
-	}
-	b.books = append(b.books, book(&d))
-
-	if _, err := os.Stat(getUserPath(b.acc.Name)); os.IsNotExist(err) {
-		return
-	}
-	d = dashboard{
-		path:	getUserPath(b.acc.Name),
-	}
-	b.books = append(b.books, book(&d))
+	return d
 }

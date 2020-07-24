@@ -8,6 +8,11 @@ import (
 	// "github.com/mijies/dashboard_builder/pkg/utils"
 )
 
+type book interface {
+	load()
+	parse()
+}
+
 // commands and snippets
 type component interface {
 	iterable()	iterator
@@ -17,15 +22,20 @@ type component interface {
 	// intoRows()
 }
 
-type book interface {
-	load()
-}
-
 type dashboard struct {
-	path	string
+	path		string
 	book		*excelize.File
 	commands	commands
-	// snippets	snippets
+	snippets	snippets
+}
+type targetBook struct {
+	dashboard
+}
+type masterBook struct {
+	dashboard
+}
+type userBook struct {
+	dashboard
 }
 
 func(d *dashboard) load() {
@@ -34,10 +44,30 @@ func(d *dashboard) load() {
         log.Fatal(err)
 	}
 	d.book = file
+}
+func(d *masterBook) load() {
+	d.dashboard.load()
 	d.commands.load(d.book)
-	// d.commands.finalize()
-	// d.snippets.load()
-	// d.snippets.finalize()
+	d.snippets.load(d.book)
+}
+func(d *userBook) load() {
+	d.dashboard.load()
+	d.commands.load(d.book)
+	d.snippets.load(d.book)
+}
+
+func(d *dashboard) parse() {
+	
+}
+func(d *masterBook) parse() {
+	d.dashboard.parse()
+	d.commands.load(d.book)
+	d.snippets.load(d.book)
+}
+func(d *userBook) parse() {
+	d.dashboard.parse()
+	d.commands.load(d.book)
+	d.snippets.load(d.book)
 }
 
 // func(d *dashboard) build() {

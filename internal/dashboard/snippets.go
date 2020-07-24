@@ -1,28 +1,26 @@
 package dashboard
 
-// import (
-// 	// "fmt"
-// 	"io/ioutil"
-// 	"log"
-// 	"os"
-// 	"regexp"
-// 	"path/filepath"
-// 	"github.com/mijies/dashboard_builder/internal/account"
-// 	"github.com/mijies/dashboard_builder/internal/config"
-// 	"github.com/mijies/dashboard_builder/pkg/utils"
-// )
+import (
+	"fmt"
+	// "io/ioutil"
+	"log"
+	// "os"
+	// "regexp"
+	// "path/filepath"
+	// "github.com/mijies/dashboard_builder/pkg/utils"
+	"github.com/360EntSecGroup-Skylar/excelize"
+)
 
-// type snippets struct {
-// 	snippets		[]snippet
-// 	user_snippets	[]snippet
-// 	finalized		[]snippet
-// 	rows			[][]string // made by intoRows()
-// 	styles			[][]string // cell styles
-// }
+type snippets struct {
+	snippets		[]snippet
+	// finalized		[]snippet
+	// rows			[][]string // made by intoRows()
+	// styles			[][]string // cell styles
+}
 
-// type snippet struct {
-// 	snipMap		map[string][]byte
-// }
+type snippet struct {
+	snipMap		map[string]string
+}
 
 // func(t *snippets) iterable() iterator {
 // 	i := iter{
@@ -34,23 +32,46 @@ package dashboard
 // 	return iterator(&i)
 // }
 
-// func(t *snippets) len() int {
-// 	if len(t.rows) != 0 {
-// 		return len(t.rows)
-// 	}
-// 	if len(t.finalized) != 0 {
-// 		return len(t.finalized)
-// 	}
-// 	return -1 // length is unknown until finalized
-// }
+func(t *snippets) len() int {
+	return len(t.snippets)
+}
 
-// func(t *snippets) getComponentLabel(cfg config.Config) string {
-// 	return cfg.GetTTLCodesLabel()
-// }
+func(s *snippets) load(book *excelize.File) {
+	// find label row
+	rowi, err := findRow(book, MACRO_SHEET_NAME, SNIPPETS_LABEL, [2]int{1, 100}, [2]int{1, 5})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// func(t *snippets) loadData(cfg config.Config, acc *account.UserAccount) {
-// 	base_dir := cfg.GetTTLCodesDir()
-// 	user_dir := filepath.FromSlash(cfg.GetTTLCodesDir() + acc.Name)
+	// iterate unless No. column is empty
+	var key string
+	empty_row := 0
+	for {
+		rowi++
+		axis := fmt.Sprintf("%s%d", "C", rowi)
+		value, err := book.GetCellValue(MACRO_SHEET_NAME, axis)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if value == "" {
+			if empty_row > 1 { // break if 3 continuous rows are empty
+				break
+			}
+			empty_row++
+			continue
+		}
+
+		if value[0] == '[' {
+			key = value
+			continue
+		}
+
+		snip := snippet{snipMap: map[string]string{key: value}}
+		s.snippets = append(s.snippets, snip)
+		empty_row = 0
+	}
+	fmt.Printf("%d\n", len(s.snippets))
 
 // 	snippetsFromDir(&t.snippets, base_dir)
 
@@ -58,7 +79,7 @@ package dashboard
 // 		return
 // 	}
 // 	snippetsFromDir(&t.user_snippets, user_dir)
-// }
+}
 
 // func(t *snippets) finalize() {
 // 	// title(file name) duplication not allowed
