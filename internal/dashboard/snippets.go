@@ -22,18 +22,19 @@ type snippet struct {
 	snipMap		map[string]string
 }
 
-// func(t *snippets) iterable() iterator {
-// 	i := iter{
-// 		index:	0,
-// 		length:	t.getLength(),
-// 		values:	&t.rows,
-// 		styles:	&t.styles,
-// 	}
-// 	return iterator(&i)
-// }
+func(s *snippets) len() int {
+	return len(s.snippets)
+}
 
-func(t *snippets) len() int {
-	return len(t.snippets)
+func(s *snippets) into_iter() iterator {
+	i := snippetsIterable{
+		iterable: iterable{
+			index:	0,
+			length:	s.len(),
+		},
+		items: s,
+	}
+	return iterator(&i)
 }
 
 func(s *snippets) load(book *excelize.File) {
@@ -79,6 +80,10 @@ func(s *snippets) load(book *excelize.File) {
 // 		return
 // 	}
 // 	snippetsFromDir(&t.user_snippets, user_dir)
+}
+
+func(s *snippets) parse() interface{} {
+	return &s.snippets
 }
 
 // func(t *snippets) finalize() {

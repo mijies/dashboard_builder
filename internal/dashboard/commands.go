@@ -3,7 +3,7 @@ package dashboard
 import (
 	"fmt"
 	"log"
-	// "sort"
+	"sort"
 	"strconv"
 	"strings"
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -12,8 +12,6 @@ import (
 
 type commands struct {
 	chains		[]command
-	// finalized	[]command
-	// rows		[][]string // made by intoRows()
 	// styles		[][]string // cell styles
 }
 
@@ -24,18 +22,19 @@ type command struct {
 	args	map[string]string
 }
 
-// func(c *commands) iterable() iterator {
-// 	i := iter{
-// 		index:	0,
-// 		length:	c.len(),
-// 		values:	&c.rows,
-// 		styles:	&c.styles,
-// 	}
-// 	return iterator(&i)
-// }
-
 func(c *commands) len() int {
 	return len(c.chains)
+}
+
+func(c *commands) into_iter() iterator {
+	i := commandsIterable{
+		iterable: iterable{
+			index: 0,
+			length: c.len(),
+		},
+		items: c,
+	}
+	return iterator(&i)
 }
 
 func(c *commands) load(book *excelize.File) {
@@ -65,6 +64,11 @@ func(c *commands) load(book *excelize.File) {
 		c.chains = append(c.chains, cmd)
 	}
 	fmt.Printf("%d\n", len(c.chains))
+}
+
+func(c *commands) parse() interface{} {
+	sort.SliceStable(c.chains, func(a, b int) bool { return c.chains[a].index < c.chains[b].index })
+	return &c.chains
 }
 
 func(c *command) load(book *excelize.File, rowi int) {

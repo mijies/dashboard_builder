@@ -2,26 +2,38 @@ package dashboard
 
 type iterator interface {
     hasNext()	bool
-    next()		([]string, []string)
+    next()		[]string
 }
 
-type iter struct {
+type iterable struct {
 	index	int
 	length	int
-	values	*[][]string
-	styles	*[][]string
+}
+type commandsIterable struct {
+	iterable
+	items	*commands
+}
+type snippetsIterable struct {
+	iterable
+	items	*snippets
 }
 
-func (i *iter) hasNext() bool {
+func (i *iterable) hasNext() bool {
     if i.index < i.length {
         return true
     }
     return false
 }
 
-func(i *iter) next() ([]string, []string) {
-	value := (*i.values)[i.index]
-	style := (*i.styles)[i.index]
+func(i *commandsIterable) next() []string {
+	// item := (*i.items)[i.index]
+	// style := (*i.styles)[i.index]
 	i.index++
-	return value, style
+	return []string{}
+}
+func(i *snippetsIterable) next() []string {
+	// item := (*i.items)[i.index]
+	// style := (*i.styles)[i.index]
+	i.index++
+	return []string{}
 }

@@ -8,18 +8,20 @@ import (
 	// "github.com/mijies/dashboard_builder/pkg/utils"
 )
 
-type book interface {
+type dbook interface {
+	get_path() string
+	ref_commands()	*commands
+	ref_snippets()	*snippets
 	load()
-	parse()
+	parse(cmds *commands, snip *snippets, sch chan bool)
 }
 
 // commands and snippets
 type component interface {
-	iterable()	iterator
 	len() int
 	load(book *excelize.File)
-	// finalize()
-	// intoRows()
+	parse() interface{}
+	into_iter()
 }
 
 type dashboard struct {
@@ -38,6 +40,17 @@ type userBook struct {
 	dashboard
 }
 
+func(d *dashboard) get_path() string {
+	return d.path
+}
+
+func(d *dashboard) ref_commands() *commands {
+	return &d.commands
+}
+func(d *dashboard) ref_snippets() *snippets {
+	return &d.snippets
+}
+
 func(d *dashboard) load() {
 	file, err := excelize.OpenFile(d.path)
     if err != nil {
@@ -45,29 +58,35 @@ func(d *dashboard) load() {
 	}
 	d.book = file
 }
+func(d *targetBook) load() {
+	d.dashboard.load()
+	d.book = nil	// relase as book can be surely opened
+}
 func(d *masterBook) load() {
 	d.dashboard.load()
 	d.commands.load(d.book)
 	d.snippets.load(d.book)
+	d.book = nil
 }
 func(d *userBook) load() {
 	d.dashboard.load()
 	d.commands.load(d.book)
 	d.snippets.load(d.book)
+	d.book = nil
 }
 
-func(d *dashboard) parse() {
-	
+func(d *dashboard) parse(cmds *commands, snip *snippets, sch chan bool) {
+	// cs := d.commands.parse().(*commands)
 }
-func(d *masterBook) parse() {
-	d.dashboard.parse()
-	d.commands.load(d.book)
-	d.snippets.load(d.book)
+func(d *masterBook) parse(cmds *commands, snip *snippets, sch chan bool) {
+	ss := d.snippets.parse().(*[]snippet)
+	snip.snippets = append(snip.snippets, *ss...)
+	sch <- true
 }
-func(d *userBook) parse() {
-	d.dashboard.parse()
-	d.commands.load(d.book)
-	d.snippets.load(d.book)
+func(d *userBook) parse(cmds *commands, snip *snippets, sch chan bool) {
+	ss := d.snippets.parse().(*[]snippet)
+	<- sch // wait for masterBook
+	snip.snippets = append(snip.snippets, *ss...)
 }
 
 // func(d *dashboard) build() {
