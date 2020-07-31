@@ -2,18 +2,15 @@ package dashboard
 
 import (
 	// "errors"
-	// "fmt"
+	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	// "github.com/mijies/dashboard_builder/pkg/utils"
 )
 
 type dbook interface {
-	get_path() string
-	ref_commands()	*commands
-	ref_snippets()	*snippets
 	load()
-	parse(cmds *commands, snip *snippets, sch chan bool)
+	parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command)
 }
 
 // commands and snippets
@@ -40,17 +37,6 @@ type userBook struct {
 	dashboard
 }
 
-func(d *dashboard) get_path() string {
-	return d.path
-}
-
-func(d *dashboard) ref_commands() *commands {
-	return &d.commands
-}
-func(d *dashboard) ref_snippets() *snippets {
-	return &d.snippets
-}
-
 func(d *dashboard) load() {
 	file, err := excelize.OpenFile(d.path)
     if err != nil {
@@ -75,18 +61,60 @@ func(d *userBook) load() {
 	d.book = nil
 }
 
-func(d *dashboard) parse(cmds *commands, snip *snippets, sch chan bool) {
-	// cs := d.commands.parse().(*commands)
+func(d *dashboard) parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command) {
 }
-func(d *masterBook) parse(cmds *commands, snip *snippets, sch chan bool) {
-	ss := d.snippets.parse().(*[]snippet)
-	snip.snippets = append(snip.snippets, *ss...)
-	sch <- true
+func(d *targetBook) parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command) {
+	d._parse_snippets(*<- sch, *<- sch)
+	d._parse_commands(*<- cch, *<- cch)
 }
-func(d *userBook) parse(cmds *commands, snip *snippets, sch chan bool) {
-	ss := d.snippets.parse().(*[]snippet)
-	<- sch // wait for masterBook
-	snip.snippets = append(snip.snippets, *ss...)
+func(d *masterBook) parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command) {
+	sch <- d.snippets.parse().(*[]snippet)
+	mtx <- true
+	cch <- d.commands.parse().(*[]command)
+	mtx <- true
+}
+func(d *userBook) parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command) {
+	<- mtx // wait for masterBook snippets
+	sch <- d.snippets.parse().(*[]snippet)
+	<- mtx
+	cch <- d.commands.parse().(*[]command)
+}
+
+func(d *targetBook) _parse_snippets(ms []snippet, us []snippet) {
+	for _, master := range ms {
+		for _, user := range us {
+			for k, _ := range master.snipMap {
+				if _, dup := user.snipMap[k]; dup {
+					log.Fatal("code name duplication with your custom code: " + k)
+				}
+			}
+		}
+	}
+	ms = append(ms, us...)
+	d.snippets.snippets = append(d.snippets.snippets, ms...)
+}
+
+func(d *targetBook) _parse_commands(mc []command, uc []command) {
+	var c command
+	m, u, offset := 0, 0, 0
+	// prioritize user chains indces
+	for i := 1; i <= len(mc) + len(uc); i++ {
+		if m < len(mc) {
+			c = mc[m]
+		}
+		if u < len(uc) && uc[u].index <= c.index + offset {
+			c = uc[u]
+			offset++
+			u++
+		} else {
+			m++
+		}
+		c.index = i
+		d.commands.chains = append(d.commands.chains, c)
+	}
+	for _, cmd := range d.commands.chains {
+		fmt.Printf("%d %s\n", cmd.index, cmd.name)
+	}
 }
 
 // func(d *dashboard) build() {

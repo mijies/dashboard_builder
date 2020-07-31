@@ -64,24 +64,19 @@ func(b *builder) loadBooks() {
 }
 
 func(b *builder) parseBooks() {
-	sch  := make(chan bool)
+	mtx  := make(chan bool)
+	sch  := make(chan *[]snippet)
+	cch  := make(chan *[]command)
 	done := make(chan bool)
-	var cmds	*commands
-	var snip	*snippets
 
 	for _, book := range b.books {
-		if book.get_path() == b.target_path {
-			cmds = book.ref_commands()
-			snip = book.ref_snippets()
-			continue
-		}
 		go func(book dbook) {
-			book.parse(cmds, snip, sch)
+			book.parse(mtx, sch, cch)
 			done <- true
 		}(book)
 	}
 
-	for _ = range b.books[1:] { // -1 for targetBook
+	for _ = range b.books {
 		<- done
 	}
 }

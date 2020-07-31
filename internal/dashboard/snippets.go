@@ -72,7 +72,7 @@ func(s *snippets) load(book *excelize.File) {
 		s.snippets = append(s.snippets, snip)
 		empty_row = 0
 	}
-	fmt.Printf("%d\n", len(s.snippets))
+	// fmt.Printf("%d\n", len(s.snippets))
 
 // 	snippetsFromDir(&t.snippets, base_dir)
 
