@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
-	// "github.com/mijies/dashboard_builder/pkg/utils"
+	"github.com/mijies/dashboard_builder/pkg/utils"
 )
 
 type dbook interface {
 	load()
 	parse(mtx chan bool, sch chan *[]snippet, cch chan *[]command)
+	build()
 }
 
 // commands and snippets
@@ -46,7 +47,6 @@ func(d *dashboard) load() {
 }
 func(d *targetBook) load() {
 	d.dashboard.load()
-	d.book = nil	// relase as book can be surely opened
 }
 func(d *masterBook) load() {
 	d.dashboard.load()
@@ -117,13 +117,14 @@ func(d *targetBook) _parse_commands(mc []command, uc []command) {
 	}
 }
 
-// func(d *dashboard) build() {
-// 	// create a new book
-// 	time_format := d.cfg.GetTimeFormat()
-// 	new_path := utils.AddTimestampToFilename(d.base_path, time_format, "xlsm")
-// 	if err := d.book.SaveAs(new_path); err != nil {
-//         log.Fatal(err)
-// 	}
+func(d *dashboard) build() {
+}
+func(d *targetBook) build() {
+	// create a new book
+	new_path := utils.AddTimestampToFilename(d.path, getTimeFormat(), "xlsm")
+	if err := d.book.SaveAs(new_path); err != nil {
+        log.Fatal(err)
+	}
 
 // 	// swap with the new one
 // 	d.base_path = new_path
@@ -143,7 +144,7 @@ func(d *targetBook) _parse_commands(mc []command, uc []command) {
 // 	index  := d.book.GetSheetIndex(sheet_name)
 // 	if err := d.book.CopySheet(tmp_index, index); err != nil {
 //         log.Fatal(err)
-// 	}
+}
 
 // 	d.renderSheet(sheet_name, &d.commands)
 // 	d.renderSheet(sheet_name, &d.snippets)

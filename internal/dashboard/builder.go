@@ -9,21 +9,26 @@ import (
 type Builder interface {
 	loadBooks()
 	parseBooks()
+	buildBook()
 }
 
 type builder struct {
-	target_path	string
-	acc			*account.UserAccount
+	// acc			*account.UserAccount
 	books		[]dbook
 }
 
 func Build(target_path string, acc *account.UserAccount) {
-	b := builder{
-		target_path:	target_path,
-		acc:			acc,
+	paths := []string{
+		target_path,
+		getMasterPath(),
 	}
-	b.loadBooks()
+	if _, err := os.Stat(getUserPath(acc.Name)); !os.IsNotExist(err) {
+		paths = append(paths, getUserPath(acc.Name))
+	}
+	b := builder{}
+	b.loadBooks(paths)
 	b.parseBooks()
+	b.buildBook()
 }
 
 func(b *builder) newBook(path string) dbook {
@@ -39,15 +44,7 @@ func(b *builder) newBook(path string) dbook {
 	return d
 }
 
-func(b *builder) loadBooks() {
-	paths := []string{
-		b.target_path,
-		getMasterPath(),
-	}
-	if _, err := os.Stat(getUserPath(b.acc.Name)); !os.IsNotExist(err) {
-		paths = append(paths, getUserPath(b.acc.Name))
-	}
-
+func(b *builder) loadBooks(paths []string) {
 	done := make(chan bool)
 	for _, path := range paths {
 		go func(path string) {
@@ -74,6 +71,20 @@ func(b *builder) parseBooks() {
 			book.parse(mtx, sch, cch)
 			done <- true
 		}(book)
+	}
+
+	for _ = range b.books {
+		<- done
+	}
+}
+
+func(b *builder) buildBook() {
+	done := make(chan bool)
+	for _, book := range b.books {
+		go func() {
+			book.build()
+			done <- true
+		}()
 	}
 
 	for _ = range b.books {
