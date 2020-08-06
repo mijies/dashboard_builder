@@ -1,8 +1,6 @@
 package dashboard
 
 import (
-	// "errors"
-	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/mijies/dashboard_builder/utils"
@@ -107,10 +105,6 @@ func(d *targetBook) _parse_commands(mc []command, uc []command) {
 func(d *dashboard) build() {
 }
 func(d *targetBook) build() {
-	// fmt.Printf("%s\n", d.path)
-	// for _, cmd := range d.commands.chains {
-	// 	fmt.Printf("%d %s\n", cmd.index, cmd.name)
-	// }
 	// create a new book
 	new_path := utils.AddTimestampToFilename(d.path, TIME_FORMAT, "xlsm")
 	if err := d.book.SaveAs(new_path); err != nil {
@@ -126,10 +120,6 @@ func(d *targetBook) build() {
 
 	// copy the template sheet
 	d.book.NewSheet(MACRO_SHEET_NAME)
-// 	tmp_index := d.book.GetSheetIndex(d.cfg.GetMacroTmpSheetName())
-// 	index  := d.book.GetSheetIndex(sheet_name)
-// 	if err := d.book.CopySheet(tmp_index, index); err != nil {
-//         log.Fatal(err)
 
 	d.render()
 	if err := d.book.Save(); err != nil {
@@ -140,17 +130,22 @@ func(d *targetBook) build() {
 func(d *dashboard) render() {
 	d._render_commands()
 	d._render_snippets()
+	d._layout_sheet()
 }
 
 func(d *dashboard) _render_commands() {
 	rowi := COMMANDS_ROW
-	cols := []string{"No","Name",COMMANDS_LABEL,"[[ARGS]]"}
-	d._render_row(rowi, cols, COMMANDS_STYLE[:])
+	cols := []string{"No","Name",COMMANDS_LABEL,"[[ARGS]]","","","","","",""}
+	d._render_row(rowi, cols, COMMANDS_STYLE_HEADERS[:])
 
+	max_chain_width := 0
+	max_args_count  := 0
 	iter := d.commands.into_iter()
 	for iter.hasNext() {
 		rowi++
 		cols, styles := iter.next()
+		max_chain_width = utils.MaxInt(max_chain_width, len(cols[2]))
+		max_args_count  = utils.MaxInt(max_args_count,  len(cols[3:]))
 		d._render_row(rowi, cols, styles)
 	}
 }
@@ -158,7 +153,7 @@ func(d *dashboard) _render_commands() {
 func(d *dashboard) _render_snippets() {
 	rowi := COMMANDS_ROW + d.commands.len() + SNIPPETS_ROW
 	cols := []string{"","",SNIPPETS_LABEL}
-	d._render_row(rowi, cols, COMMANDS_STYLE[:])
+	d._render_row(rowi, cols, SNIPPETS_STYLE_HEADERS[:])
 
 	iter := d.snippets.into_iter()
 	for iter.hasNext() {
@@ -169,9 +164,8 @@ func(d *dashboard) _render_snippets() {
 }
 
 func(d *dashboard) _render_row(rowi int, cols []string, styles []string) {
-	seed := int('A')
+	COL_SEED := int('A')
 	for i, v := range cols {
-		axis := fmt.Sprintf("%s%d", string(seed + i), rowi)
 		d.book.SetCellValue(MACRO_SHEET_NAME, axis, v)
 		if len(styles[i]) != 0 {
 			d.setRowStyle(MACRO_SHEET_NAME, axis, styles[i])
@@ -185,4 +179,14 @@ func(d *dashboard) setRowStyle(sheet_name string, axis string, style_str string)
 		log.Fatal(err)
 	}
 	err = d.book.SetCellStyle(sheet_name, axis, axis, style)
+}
+
+func(d *dashboard) _layout_sheet() {
+	COL_SEED := int('A')
+	for i, width := range COLUMN_WIDTH_SLICE {
+		err := d.book.SetColWidth(MACRO_SHEET_NAME, string(COL_SEED + i), string(COL_SEED + i), float64(width))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }

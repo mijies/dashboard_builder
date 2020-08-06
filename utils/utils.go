@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -19,26 +19,33 @@ func AddTimestampToFilename(path string, format string, extension string) string
 	return fmt.Sprintf("%s_%s.%s", path[:length], timestamp, extension)
 }
 
-func LoadJSON(path string, obj interface{}) {
-	bs, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
+func MaxInt(a int, b int) int {
+	if a < b {
+		return b
 	}
-	json.Unmarshal(bs, &obj)
+	return a
 }
 
-func DirWalk(dir string, fn func(string, os.FileInfo) string) []string {
-    files, err := ioutil.ReadDir(dir)
-    if err != nil {
-        log.Fatal(err)
-    }
+// func LoadJSON(path string, obj interface{}) {
+// 	bs, err := ioutil.ReadFile(path)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	json.Unmarshal(bs, &obj)
+// }
 
-    var paths []string
-    for _, file := range files {
-		path := fn(dir, file)
-		if path != "" {
-			paths = append(paths, path)
-		}
-    }
-    return paths
-}
+// func DirWalk(dir string, fn func(string, os.FileInfo) string) []string {
+//     files, err := ioutil.ReadDir(dir)
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+
+//     var paths []string
+//     for _, file := range files {
+// 		path := fn(dir, file)
+// 		if path != "" {
+// 			paths = append(paths, path)
+// 		}
+//     }
+//     return paths
+// }

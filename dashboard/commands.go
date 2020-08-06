@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"github.com/360EntSecGroup-Skylar/excelize"
-	// "github.com/mijies/dashboard_builder/utils"
 )
 
 type commands struct {
@@ -102,24 +101,3 @@ func(c *commands) parse() interface{} {
 	sort.SliceStable(c.chains, func(a, b int) bool { return c.chains[a].index < c.chains[b].index })
 	return &c.chains
 }
-
-// func(c *commands) into_() {
-// 	for _, cmd := range c.finalized {
-// 		row := []string{
-// 			fmt.Sprintf("%d", cmd.Index),
-// 			cmd.Name,
-// 			strings.Join(cmd.Chain, ","),
-// 		}
-// 		style := []string{
-// 			STYLE_NO, STYLE_NAME, STYLE_CHAIN,
-// 		}
-
-// 		for k, v := range cmd.Args {
-// 			row   = append(row, k + "," + v)
-// 			style = append(style, STYLE_ARGS)
-// 		}
-// 		c.rows   = append(c.rows,   row)
-// 		c.styles = append(c.styles, style)
-// 	}
-// 	c.finalized	= nil
-// }

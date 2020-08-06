@@ -57,7 +57,7 @@ func(i *commandsIterable) next() ([]string, []string) {
 }
 
 func(i *snippetsIterable) next() ([]string, []string) {
-	styles := SNIPPETS_BLANK_STYLE[:]
+	styles := SNIPPETS_STYLE_BLANKS[:]
 	cols   := []string{"","",""}
 	// a snippet takes 3 rows
 	switch(i.index % 3) {
@@ -66,6 +66,7 @@ func(i *snippetsIterable) next() ([]string, []string) {
 		for k, _ := range item.snipMap {
 			cols[2] = k
 		}
+		styles = SNIPPETS_STYLE_NAMES[:]
 	case 1: // code
 		item := &(*i.component).snippets[i.index / 3]
 		for _, v := range item.snipMap {

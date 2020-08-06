@@ -2,12 +2,7 @@ package dashboard
 
 import (
 	"fmt"
-	// "io/ioutil"
 	"log"
-	// "os"
-	// "regexp"
-	// "path/filepath"
-	// "github.com/mijies/dashboard_builder/utils"
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
@@ -69,54 +64,8 @@ func(s *snippets) load(book *excelize.File) {
 		s.snippets = append(s.snippets, snip)
 		empty_row = 0
 	}
-	// fmt.Printf("%d\n", len(s.snippets))
-
-// 	snippetsFromDir(&t.snippets, base_dir)
-
-// 	if _, err := os.Stat(user_dir); os.IsNotExist(err) {
-// 		return
-// 	}
-// 	snippetsFromDir(&t.user_snippets, user_dir)
 }
 
 func(s *snippets) parse() interface{} {
 	return &s.snippets
 }
-
-
-// func(t *snippets) intoRows() {
-// 	for _, s := range t.finalized {
-// 		for k, v := range s.snipMap {
-// 			t.rows = append(t.rows, []string{"", "", "[" + k + "]"}) // 1st and 2nd columns are empty
-// 			t.rows = append(t.rows, []string{"", "", string(v)})
-// 			t.rows = append(t.rows, []string{"", "", ""})
-// 			t.styles = append(t.styles, []string{"", "", STYLE_TITLE})
-// 			t.styles = append(t.styles, []string{"", "", ""})
-// 			t.styles = append(t.styles, []string{"", "", ""})
-// 		}
-// 	}
-// 	t.finalized	= nil
-// }
-
-// func snippetsFromDir(snips *[]snippet, dir string) {
-// 	file_names := utils.DirWalk(dir, onlyTextFile)
-// 	for _, name := range file_names {
-// 		bs, err := ioutil.ReadFile(filepath.Join(dir, name))
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		snip := snippet{
-// 			snipMap: map[string][]byte{name[:len(name)-4]: bs}, // remove .txt from name
-// 		}
-// 		*snips = append(*snips, snip)
-// 	}
-// }
-
-// // used for utils.DirWalk
-// func onlyTextFile(dir string, file os.FileInfo) string {
-// 	r := regexp.MustCompile(`txt$`)
-// 	if file.IsDir() || !r.MatchString(file.Name()) {
-// 		return ""
-// 	}
-// 	return file.Name()
-// }
