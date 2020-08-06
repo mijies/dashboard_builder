@@ -15,6 +15,8 @@ const (
 	COMMANDS_LABEL	= "[[COMMAND]]"
 	SNIPPETS_LABEL	= "[[CONFIG]]"
 
+	LOGIN_NAME_MATCH = "foobar"
+
 	COMMANDS_ROW	= 2
 	SNIPPETS_ROW	= 2 // offset from the last command chain
 

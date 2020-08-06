@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/mijies/dashboard_builder/account"
 )
 
 type commands struct {
@@ -24,10 +25,11 @@ func(c *commands) len() int {
 	return len(c.chains)
 }
 
-func(c *commands) into_iter() iterator {
+func(c *commands) into_iter(acc *account.UserAccount) iterator {
 	i := commandsIterable{
 		iterable: iterable{
-			index: 0,
+			acc:	acc,
+			index: 	0,
 			length: c.len(),
 		},
 		component: c,

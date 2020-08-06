@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/mijies/dashboard_builder/account"
 )
 
 type iterator interface {
@@ -17,10 +18,11 @@ type component interface {
 	len() int
 	load(book *excelize.File)
 	parse() interface{}
-	into_iter()
+	into_iter(acc *account.UserAccount)
 }
 
 type iterable struct {
+	acc		*account.UserAccount
 	index	int
 	length	int
 }
@@ -49,6 +51,8 @@ func(i *commandsIterable) next() ([]string, []string) {
 		strings.Join(item.chain, ","),
 	}
 	for k, v := range item.args {
+		// replace LOGIN_NAME_MATCH eith acc.Login_name
+		v      = strings.Replace(v, LOGIN_NAME_MATCH, i.acc.Login_name, -1)
 		cols   = append(cols, k + "," + v)
 		styles = append(styles, COMMANDS_STYLE_ARGS)
 	}

@@ -40,11 +40,11 @@ func(b *builder) newBook(path string) dbook {
 	var d dbook
 	switch(path) {
 	case b.target_path:
-		d = dbook(&targetBook{dashboard{path: path}})
+		d = dbook(&targetBook{dashboard{path: path, acc: b.acc}})
 	case getMasterPath():
-		d = dbook(&masterBook{dashboard{path: path}})
+		d = dbook(&masterBook{dashboard{path: path, acc: b.acc}})
 	case getUserPath(b.acc.Name):
-		d = dbook(&userBook{dashboard{path: path}})
+		d = dbook(&userBook{dashboard{path: path, acc: b.acc}})
 	}
 	return d
 }

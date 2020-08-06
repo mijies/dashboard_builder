@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/mijies/dashboard_builder/account"
 )
 
 type snippets struct {
@@ -18,9 +19,10 @@ func(s *snippets) len() int {
 	return len(s.snippets)
 }
 
-func(s *snippets) into_iter() iterator {
+func(s *snippets) into_iter(acc *account.UserAccount) iterator {
 	i := snippetsIterable{
 		iterable: iterable{
+			acc:	acc,
 			index:	0,
 			length:	s.len() * 3, // a snippet takes 3 rows
 		},

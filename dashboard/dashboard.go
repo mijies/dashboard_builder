@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/mijies/dashboard_builder/account"
 	"github.com/mijies/dashboard_builder/utils"
 )
 
@@ -16,6 +17,7 @@ type dbook interface {
 
 type dashboard struct {
 	path		string
+	acc			*account.UserAccount
 	book		*excelize.File
 	commands	commands
 	snippets	snippets
@@ -141,7 +143,7 @@ func(d *dashboard) _render_commands() {
 
 	max_chain_width := 0
 	max_args_count  := 0
-	iter := d.commands.into_iter()
+	iter := d.commands.into_iter(d.acc)
 	for iter.hasNext() {
 		rowi++
 		cols, styles := iter.next()
@@ -156,7 +158,7 @@ func(d *dashboard) _render_snippets() {
 	cols := []string{"","",SNIPPETS_LABEL}
 	d._render_row(rowi, cols, SNIPPETS_STYLE_HEADERS[:])
 
-	iter := d.snippets.into_iter()
+	iter := d.snippets.into_iter(d.acc)
 	for iter.hasNext() {
 		rowi++
 		cols, styles := iter.next()
