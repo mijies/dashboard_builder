@@ -61,7 +61,6 @@ func(c *commands) load(book *excelize.File) {
 		cmd._load(book, rowi)
 		c.chains = append(c.chains, cmd)
 	}
-	fmt.Printf("%d\n", len(c.chains))
 }
 
 func(c *command) _load(book *excelize.File, rowi int) {

@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"fmt"
 	"log"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/mijies/dashboard_builder/utils"
@@ -166,6 +167,7 @@ func(d *dashboard) _render_snippets() {
 func(d *dashboard) _render_row(rowi int, cols []string, styles []string) {
 	COL_SEED := int('A')
 	for i, v := range cols {
+		axis := fmt.Sprintf("%s%d", string(COL_SEED + i), rowi)
 		d.book.SetCellValue(MACRO_SHEET_NAME, axis, v)
 		if len(styles[i]) != 0 {
 			d.setRowStyle(MACRO_SHEET_NAME, axis, styles[i])
