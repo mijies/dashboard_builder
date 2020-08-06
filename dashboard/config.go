@@ -4,10 +4,10 @@ const (
 	TIME_FORMAT 	= "20060102030405"
 
 	// files and directories and labels
-	BASE_DIR    	= "samples/"
-	MASTER_DIR		= "master/"
-	USERS_DIR		= "users/"
-	DASHBOARD_FILE	= "dashboard.xlsm"
+	BASE_DIR    		= "samples/"
+	MASTER_DIR			= "master/"
+	USERS_DIR			= "users/"
+	DASHBOARD_FILE 		= "dashboard.xlsm"
 
 	// command sheet format
 	MACRO_SHEET_NAME = "ttl_macro"

@@ -3,9 +3,9 @@ package utils
 import (
 	// "encoding/json"
 	"fmt"
-	// "io/ioutil"
-	// "log"
-	// "os"
+	"bufio"
+	"log"
+	"os"
 	"time"
 )
 
@@ -24,6 +24,24 @@ func MaxInt(a int, b int) int {
 		return b
 	}
 	return a
+}
+
+func ReadLineSlice(path string) []string {
+	fp, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fp.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(fp)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err = scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return lines
 }
 
 // func LoadJSON(path string, obj interface{}) {
