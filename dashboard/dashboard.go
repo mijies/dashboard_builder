@@ -119,10 +119,15 @@ func(d *targetBook) build() {
 	d.load()
 
 	// delete the exsisting macro sheet
-	d.book.DeleteSheet(MACRO_SHEET_NAME)
+	// d.book.DeleteSheet(MACRO_SHEET_NAME)
 
 	// copy the template sheet
-	d.book.NewSheet(MACRO_SHEET_NAME)
+	// d.book.NewSheet(MACRO_SHEET_NAME)
+
+	// delete the exsisting data in macro sheet
+	for _ = range [30]bool{} {
+		d.book.RemoveCol(MACRO_SHEET_NAME, "A")
+	}
 
 	d.render()
 	if err := d.book.Save(); err != nil {
