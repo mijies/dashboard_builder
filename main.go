@@ -9,11 +9,11 @@ import (
 func main() {
 
 	// Parse comand-line
-	book_path  := *flag.String("f", "samples/dashboard.xlsm", "Path to the target bashboard.xlsm")
-	user       := *flag.String("u", "", "Your name")
-	login_user := *flag.String("l", "", "Your login name")
+	book_path  := flag.String("f", "samples/dashboard.xlsm", "Path to the target bashboard.xlsm")
+	user       := flag.String("u", "", "Your name")
+	login_user := flag.String("l", "", "Your login name")
 	flag.Parse()
 
-	account := account.NewUserAccount(user, login_user)
-	dashboard.Build(book_path, account)
+	account := account.NewUserAccount(*user, *login_user)
+	dashboard.Build(*book_path, account)
 }
