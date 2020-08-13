@@ -32,7 +32,8 @@ const (
 							 "fill":{"type":"gradient","color":["#FFFFFF","#FFE6E6"],"shading":5},
 							 "font":{"bold":true}}`
 	COMMANDS_STYLE_INDEX = ""
-	COMMANDS_STYLE_NAME  = "" // `{"font":{"bold":true}}`
+	COMMANDS_STYLE_NAME  = `{"fill":{"type":"pattern","color":["#E0EBF5"],"pattern":1}}`
+	COMMANDS_STYLE_NAME_BOLD = `{"fill":{"type":"pattern","color":["#E0EBF5"],"pattern":1},"font":{"bold":true}}`
 	COMMANDS_STYLE_CHAIN = `{"border":[{"type":"left","style":1},{"type":"right","style":1},{"type":"top","style":1},{"type":"bottom","style":1}],
 							 "fill":{"type":"gradient","color":["#FFFFFF","#E0EBF5"],"shading":5}}`
 	COMMANDS_STYLE_ARGS  = ""

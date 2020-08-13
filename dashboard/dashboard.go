@@ -155,6 +155,11 @@ func(d *dashboard) _render_commands() {
 		max_chain_width = utils.MaxInt(max_chain_width, len(cols[2]))
 		max_args_count  = utils.MaxInt(max_args_count,  len(cols[3:]))
 		d._render_row(rowi, cols, styles)
+
+		if cols[2] == "" {
+			axis := fmt.Sprintf("%s%d", "B", rowi)
+			d.setRowStyle(MACRO_SHEET_NAME, axis, COMMANDS_STYLE_NAME_BOLD)
+		}
 	}
 }
 
@@ -172,7 +177,6 @@ func(d *dashboard) _render_snippets() {
 }
 
 func(d *dashboard) _render_row(rowi int, cols []string, styles []string) {
-	COL_SEED := int('A')
 	for i, v := range cols {
 		axis := fmt.Sprintf("%s%d", string(COL_SEED + i), rowi)
 		d.book.SetCellValue(MACRO_SHEET_NAME, axis, v)
@@ -191,7 +195,6 @@ func(d *dashboard) setRowStyle(sheet_name string, axis string, style_str string)
 }
 
 func(d *dashboard) _layout_sheet() {
-	COL_SEED := int('A')
 	for i, width := range COLUMN_WIDTH_SLICE {
 		err := d.book.SetColWidth(MACRO_SHEET_NAME, string(COL_SEED + i), string(COL_SEED + i), float64(width))
 		if err != nil {

@@ -50,10 +50,10 @@ func(i *commandsIterable) next() ([]string, []string) {
 		item.name,
 		strings.Join(item.chain, ","),
 	}
-	for k, v := range item.args {
+	for _, arg := range item.args {
 		// replace LOGIN_NAME_MATCH eith acc.Login_name
-		v      = strings.Replace(v, LOGIN_NAME_MATCH, i.acc.Login_name, -1)
-		cols   = append(cols, k + "," + v)
+		v     := strings.Replace(arg[1], LOGIN_NAME_MATCH, i.acc.Login_name, -1)
+		cols   = append(cols, arg[0] + "," + v)
 		styles = append(styles, COMMANDS_STYLE_ARGS)
 	}
 	i.index++

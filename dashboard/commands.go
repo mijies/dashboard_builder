@@ -18,7 +18,7 @@ type command struct {
 	index	int
 	name	string
 	chain	[]string
-	args	map[string]string
+	args	[][2]string
 }
 
 func(c *commands) len() int {
@@ -59,7 +59,7 @@ func(c *commands) load(book *excelize.File) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		cmd := command{index: int_idx, args: make(map[string]string)}
+		cmd := command{index: int_idx}
 		cmd._load(book, rowi)
 		c.chains = append(c.chains, cmd)
 	}
@@ -94,7 +94,7 @@ func(c *command) _load(book *excelize.File, rowi int) {
 			return
 		}
 		kv := strings.Split(args, ",")
-		c.args[kv[0]] = kv[1]
+		c.args = append(c.args, [2]string{kv[0], kv[1]})
 	}
 }
 
