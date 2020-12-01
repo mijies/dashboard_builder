@@ -6,7 +6,8 @@ import (
 	"github.com/mijies/dashboard_builder/utils"
 )
 
-const DEFAULT_ACCOUNT_TXT = "samples/dashboard.txt"
+const DEFAULT_DASHBOARD_PATH = "samples/dashboard.xlsm"
+const DEFAULT_ACCOUNT_TXT    = "samples/dashboard.txt"
 
 type UserAccount struct {
 	Name		string
