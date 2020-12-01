@@ -60,7 +60,7 @@ func get_account_from_dialogbox() *UserAccount {
 				Layout: HBox{},
 				Children: []Widget{
 					Label{
-						Text: "User Name:",
+						Text: "User Name: ",
 					},
 					LineEdit{
 						AssignTo: &dlgW.user_name,
