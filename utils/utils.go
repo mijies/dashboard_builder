@@ -35,6 +35,8 @@ func ReadLineSlice(path string) []string {
 
 	var lines []string
 	scanner := bufio.NewScanner(fp)
+	buf := make([]byte, 0, 64*1024) // MaxScanTokenSize 64 * 1024 bytes
+	scanner.Buffer(buf, 1024*1024)  // upto 1MB
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
