@@ -9,11 +9,11 @@ import (
 )
 
 func getMasterPath() string {
-	return filepath.FromSlash(BASE_DIR + MASTER_DIR + DASHBOARD_FILE)
+	return filepath.FromSlash(BASE_DIR + MASTER_PATH)
 }
 
 func getUserPath(user string) string {
-	return filepath.FromSlash(BASE_DIR + USERS_DIR + user + "/" + DASHBOARD_FILE)
+	return filepath.FromSlash(BASE_DIR + USERS_DIR + user + ".xlsm")
 }
 
 func findRow(book *excelize.File, sheet_name string, value string, rows [2]int, cols [2]int) (int, error) {
